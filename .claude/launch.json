@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "pixel-flow",
+      "runtimeExecutable": "C:/Program Files/nodejs/node.exe",
+      "runtimeArgs": ["C:/Users/ferra/my_vibe_game/node_modules/vite/bin/vite.js", "--port", "3001"],
+      "port": 3001
+    }
+  ]
+}

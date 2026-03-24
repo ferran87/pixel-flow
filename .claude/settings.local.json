@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm src/counter.js src/style.css)",
+      "Bash(rm -rf src/assets)",
+      "Bash(mkdir -p src/scenes src/objects src/systems src/utils assets/sprites/shooters assets/sprites/blocks assets/sprites/ui assets/sprites/effects assets/backgrounds assets/audio/sfx assets/audio/music data .github/workflows)",
+      "Bash(npm run:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(where npm:*)",
+      "Bash(command -v npm)",
+      "Bash(netstat -ano)",
+      "Bash(xargs -I{} taskkill /PID {} /F)",
+      "Bash(taskkill /PID 43464 /F)",
+      "Bash(cmd.exe /c \"taskkill /PID 43464 /F\")",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}
