@@ -1,0 +1,260 @@
+[
+  {
+    "id": 1,
+    "name": "First Steps",
+    "railSpeed": 80,
+    "railCapacity": 3,
+    "grid": [
+      ["red",  "red",  "red",  "red",  "red"],
+      ["red",  "blue", "blue", "blue", "red"],
+      ["red",  "blue", "red",  "blue", "red"],
+      ["red",  "blue", "blue", "blue", "red"],
+      ["red",  "red",  "red",  "red",  "red"]
+    ],
+    "monsters": [
+      { "color": "red",  "ammo": 12 },
+      { "color": "blue", "ammo": 10 },
+      { "color": "red",  "ammo": 10 }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Three Colors",
+    "railSpeed": 90,
+    "railCapacity": 3,
+    "grid": [
+      ["red",    "red",    "blue",   "blue",   "red",    "red"],
+      ["red",    "yellow", "yellow", "yellow", "yellow", "red"],
+      ["blue",   "yellow", "blue",   "blue",   "yellow", "blue"],
+      ["blue",   "yellow", "blue",   "blue",   "yellow", "blue"],
+      ["red",    "yellow", "yellow", "yellow", "yellow", "red"],
+      ["red",    "red",    "blue",   "blue",   "red",    "red"]
+    ],
+    "monsters": [
+      { "color": "red",    "ammo": 10 },
+      { "color": "blue",   "ammo": 10 },
+      { "color": "yellow", "ammo": 10 },
+      { "color": "red",    "ammo": 8 },
+      { "color": "blue",   "ammo": 8 },
+      { "color": "yellow", "ammo": 8 }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Heart",
+    "railSpeed": 95,
+    "railCapacity": 3,
+    "grid": [
+      [null,   "red",  "red",  null,   null,  "red",  "red",  null],
+      ["red",  "red",  "red",  "red",  "red", "red",  "red",  "red"],
+      ["red",  "red",  "red",  "red",  "red", "red",  "red",  "red"],
+      ["red",  "red",  "red",  "red",  "red", "red",  "red",  "red"],
+      [null,   "red",  "red",  "red",  "red", "red",  "red",  null],
+      [null,   null,   "red",  "red",  "red", "red",  null,   null],
+      [null,   null,   null,   "red",  "red", null,   null,   null]
+    ],
+    "monsters": [
+      { "color": "red", "ammo": 20 },
+      { "color": "red", "ammo": 20 },
+      { "color": "red", "ammo": 15 }
+    ]
+  },
+  {
+    "id": 4,
+    "name": "Smiley",
+    "railSpeed": 100,
+    "railCapacity": 4,
+    "grid": [
+      [null,    "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", null],
+      ["yellow","yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "yellow"],
+      ["yellow","yellow", "blue",   "yellow", "yellow", "blue",   "yellow", "yellow"],
+      ["yellow","yellow", "blue",   "yellow", "yellow", "blue",   "yellow", "yellow"],
+      ["yellow","yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "yellow"],
+      ["yellow","red",    "yellow", "yellow", "yellow", "yellow", "red",    "yellow"],
+      ["yellow","yellow", "red",    "red",    "red",    "red",    "yellow", "yellow"],
+      [null,    "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", null]
+    ],
+    "monsters": [
+      { "color": "yellow", "ammo": 20 },
+      { "color": "blue",   "ammo": 10 },
+      { "color": "red",    "ammo": 10 },
+      { "color": "yellow", "ammo": 20 },
+      { "color": "yellow", "ammo": 20 }
+    ]
+  },
+  {
+    "id": 5,
+    "name": "Arrow",
+    "railSpeed": 100,
+    "railCapacity": 4,
+    "grid": [
+      [null,   null,   null,   "green", null,   null,   null],
+      [null,   null,   "green","green", "green",null,   null],
+      [null,   "green","green","green", "green","green", null],
+      ["green","green","green","green", "green","green", "green"],
+      [null,   null,   null,   "green", null,   null,   null],
+      [null,   null,   null,   "green", null,   null,   null],
+      [null,   null,   null,   "green", null,   null,   null],
+      [null,   null,   null,   "green", null,   null,   null]
+    ],
+    "monsters": [
+      { "color": "green", "ammo": 15 },
+      { "color": "green", "ammo": 15 }
+    ]
+  },
+  {
+    "id": 6,
+    "name": "Checkerboard",
+    "railSpeed": 105,
+    "railCapacity": 4,
+    "grid": [
+      ["red",  "blue", "red",  "blue", "red",  "blue"],
+      ["blue", "red",  "blue", "red",  "blue", "red"],
+      ["red",  "blue", "red",  "blue", "red",  "blue"],
+      ["blue", "red",  "blue", "red",  "blue", "red"],
+      ["red",  "blue", "red",  "blue", "red",  "blue"],
+      ["blue", "red",  "blue", "red",  "blue", "red"]
+    ],
+    "monsters": [
+      { "color": "red",  "ammo": 12 },
+      { "color": "blue", "ammo": 12 },
+      { "color": "red",  "ammo": 12 },
+      { "color": "blue", "ammo": 12 }
+    ]
+  },
+  {
+    "id": 7,
+    "name": "Pixel Star",
+    "railSpeed": 110,
+    "railCapacity": 4,
+    "grid": [
+      [null,     null,     null,    "yellow", "yellow", null,     null,     null],
+      [null,     null,     "yellow","yellow", "yellow", "yellow", null,     null],
+      [null,     "yellow", "yellow","yellow", "yellow", "yellow", "yellow", null],
+      ["yellow", "yellow", "yellow","yellow", "yellow", "yellow", "yellow", "yellow"],
+      ["yellow", "yellow", "yellow","yellow", "yellow", "yellow", "yellow", "yellow"],
+      [null,     "yellow", "yellow","yellow", "yellow", "yellow", "yellow", null],
+      [null,     null,     "yellow","yellow", "yellow", "yellow", null,     null],
+      [null,     null,     null,    "yellow", "yellow", null,     null,     null]
+    ],
+    "monsters": [
+      { "color": "yellow", "ammo": 20 },
+      { "color": "yellow", "ammo": 20 },
+      { "color": "yellow", "ammo": 15 }
+    ]
+  },
+  {
+    "id": 8,
+    "name": "Pixel Cat",
+    "railSpeed": 110,
+    "railCapacity": 5,
+    "grid": [
+      ["blue",   null,     null,     null,     null,     null,     null,     null,     null,     "blue"],
+      ["blue",   "blue",   null,     null,     null,     null,     null,     null,     "blue",   "blue"],
+      ["blue",   "blue",   "blue",   "yellow", "yellow", "yellow", "yellow", "blue",   "blue",   "blue"],
+      [null,     "blue",   "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "blue",   null],
+      [null,     "blue",   "yellow", "blue",   "yellow", "yellow", "blue",   "yellow", "blue",   null],
+      [null,     "blue",   "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", "blue",   null],
+      [null,     null,     "yellow", "yellow", "green",  "green",  "yellow", "yellow", null,     null],
+      [null,     null,     "yellow", "yellow", "yellow", "yellow", "yellow", "yellow", null,     null],
+      [null,     null,     null,     "yellow", "yellow", "yellow", "yellow", null,     null,     null]
+    ],
+    "monsters": [
+      { "color": "blue",   "ammo": 15 },
+      { "color": "yellow", "ammo": 20 },
+      { "color": "blue",   "ammo": 10 },
+      { "color": "yellow", "ammo": 20 },
+      { "color": "green",  "ammo": 10 }
+    ]
+  },
+  {
+    "id": 9,
+    "name": "Rainbow",
+    "railSpeed": 115,
+    "railCapacity": 5,
+    "grid": [
+      [null,     null,    "red",    "red",    "red",    "red",   null,    null],
+      [null,     "red",   "orange", "orange", "orange", "orange","red",   null],
+      ["red",    "orange","yellow", "yellow", "yellow", "yellow","orange","red"],
+      ["red",    "orange","yellow", "green",  "green",  "yellow","orange","red"],
+      ["red",    "orange","yellow", "green",  "green",  "yellow","orange","red"],
+      [null,     null,    "yellow", "green",  "green",  "yellow",null,    null],
+      [null,     null,    null,     "green",  "green",  null,    null,    null]
+    ],
+    "monsters": [
+      { "color": "red",    "ammo": 10 },
+      { "color": "orange", "ammo": 10 },
+      { "color": "yellow", "ammo": 10 },
+      { "color": "green",  "ammo": 10 },
+      { "color": "red",    "ammo": 8 },
+      { "color": "orange", "ammo": 8 }
+    ]
+  },
+  {
+    "id": 10,
+    "name": "Mushroom",
+    "railSpeed": 120,
+    "railCapacity": 5,
+    "grid": [
+      [null,    null,    "red",   "red",   "red",   "red",   null,    null],
+      [null,    "red",   "red",   "red",   "red",   "red",   "red",   null],
+      ["red",   "red",   "yellow","red",   "red",   "yellow","red",   "red"],
+      ["red",   "red",   "red",   "red",   "red",   "red",   "red",   "red"],
+      [null,    null,    "yellow","yellow", "yellow","yellow",null,    null],
+      [null,    null,    "yellow","yellow", "yellow","yellow",null,    null],
+      [null,    "yellow","yellow","yellow", "yellow","yellow","yellow",null]
+    ],
+    "monsters": [
+      { "color": "red",    "ammo": 15 },
+      { "color": "yellow", "ammo": 12 },
+      { "color": "red",    "ammo": 15 },
+      { "color": "yellow", "ammo": 12 }
+    ]
+  },
+  {
+    "id": 11,
+    "name": "Alien",
+    "railSpeed": 120,
+    "railCapacity": 5,
+    "grid": [
+      [null,    null,    "green", "green", "green", "green", null,    null],
+      [null,    "green", "green", "green", "green", "green", "green", null],
+      ["green", "green", "blue",  "green", "green", "blue",  "green", "green"],
+      ["green", "green", "green", "green", "green", "green", "green", "green"],
+      ["green", "green", "green", "purple","purple","green", "green", "green"],
+      [null,    "green", "green", "green", "green", "green", "green", null],
+      [null,    null,    "green", null,    null,    "green", null,    null],
+      [null,    "green", null,    null,    null,    null,    "green", null]
+    ],
+    "monsters": [
+      { "color": "green",  "ammo": 20 },
+      { "color": "blue",   "ammo": 10 },
+      { "color": "purple", "ammo": 10 },
+      { "color": "green",  "ammo": 20 },
+      { "color": "green",  "ammo": 15 }
+    ]
+  },
+  {
+    "id": 12,
+    "name": "Castle",
+    "railSpeed": 125,
+    "railCapacity": 5,
+    "grid": [
+      ["blue",  null,    null,    "blue",  null,    null,    "blue"],
+      ["blue",  "blue",  "blue",  "blue",  "blue",  "blue",  "blue"],
+      ["blue",  "blue",  "blue",  "blue",  "blue",  "blue",  "blue"],
+      [null,    "blue",  "yellow","yellow","yellow","blue",   null],
+      [null,    "blue",  "yellow","yellow","yellow","blue",   null],
+      [null,    "blue",  "blue",  "red",   "blue",  "blue",  null],
+      [null,    "blue",  "blue",  "red",   "blue",  "blue",  null],
+      ["blue",  "blue",  "blue",  "blue",  "blue",  "blue",  "blue"]
+    ],
+    "monsters": [
+      { "color": "blue",   "ammo": 20 },
+      { "color": "yellow", "ammo": 10 },
+      { "color": "red",    "ammo": 10 },
+      { "color": "blue",   "ammo": 20 },
+      { "color": "blue",   "ammo": 10 }
+    ]
+  }
+]

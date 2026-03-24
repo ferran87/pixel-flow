@@ -90,14 +90,17 @@ function _chirp(startFreq, endFreq, type, duration, gainNode) {
 
 export function playBlockDestroy() {
   if (!_initialized) return
-  // Short crisp pop — high square wave chirp down
   _chirp(880, 440, 'square', 0.12, _sfxGain)
 }
 
 export function playShooterFire() {
   if (!_initialized) return
-  // Quick tick
   _tone(1200, 'sine', 0.06, 0.3, _sfxGain)
+}
+
+export function playDeploy() {
+  if (!_initialized) return
+  _chirp(300, 600, 'sine', 0.15, _sfxGain)
 }
 
 export function playShooterDepleted() {

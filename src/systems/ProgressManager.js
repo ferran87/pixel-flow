@@ -34,9 +34,7 @@ export function getStars(levelId) {
 }
 
 export function isUnlocked(levelId) {
-  if (levelId === 1) return true
-  const data = _loadProgress()
-  return data.completed.includes(levelId - 1)
+  return true
 }
 
 export function getSettings() {

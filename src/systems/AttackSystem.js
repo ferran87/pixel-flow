@@ -1,56 +1,51 @@
-import { ATTACK_RANGE, ATTACK_DAMAGE, BLOCK_SIZE } from '../constants.js'
+/**
+ * Rail-based attack system.
+ *
+ * Each frame, for every monster on the rail:
+ * 1. Determine which side of the grid it faces (from rail segment).
+ * 2. Find the lane it's aligned with.
+ * 3. Look up the edge block in that lane.
+ * 4. If the block color matches the monster's color, fire.
+ */
 
-// Pure logic module — no Phaser dependencies, just data manipulation.
-// Called from GameScene.update() every frame.
-// Returns an array of event objects for GameScene to react to.
-
-export function resolve(shooters, blocks, now) {
+export function resolve(monsters, pixelGrid, now) {
   const events = []
 
-  for (const shooter of shooters) {
-    if (shooter.isDepleted() || !shooter.active) continue
+  for (const monster of monsters) {
+    if (monster.isDepleted() || !monster.active) continue
+    if (!monster.canFire(now)) continue
 
-    // Re-acquire target if current is gone or out of range
-    if (
-      !shooter.currentTarget ||
-      !shooter.currentTarget.active ||
-      !_inRange(shooter, shooter.currentTarget)
-    ) {
-      shooter.currentTarget = _findTarget(shooter, blocks)
-    }
+    const side = monster.currentSide
+    const lane = pixelGrid.getLaneForPosition(side, monster.x, monster.y)
+    const edgeBlock = pixelGrid.getEdgeBlock(side, lane)
 
-    if (!shooter.currentTarget) continue
-    if (!_inRange(shooter, shooter.currentTarget)) continue
-    if (!shooter.canAttack(now)) continue
+    if (!edgeBlock) continue
+    if (edgeBlock.cell.color !== monster.color) continue
 
-    const benched = shooter.doAttack(now)
-    const killed = shooter.currentTarget.takeDamage(ATTACK_DAMAGE)
+    // Fire!
+    const cellCenter = _getCellCenter(pixelGrid, edgeBlock.row, edgeBlock.col)
+    monster.shootBullet(cellCenter.x, cellCenter.y)
+    const depleted = monster.fire(now)
 
-    if (killed) {
-      events.push({ type: 'blockDestroyed', block: shooter.currentTarget, color: shooter.currentTarget.color })
-      shooter.currentTarget.destroyWithEffect()
-      shooter.currentTarget = null
-    }
+    pixelGrid.destroyBlock(edgeBlock.row, edgeBlock.col)
+    events.push({
+      type: 'blockDestroyed',
+      row: edgeBlock.row,
+      col: edgeBlock.col,
+      color: edgeBlock.cell.color,
+    })
 
-    if (benched) {
-      events.push({ type: 'shooterBenched', shooter, color: shooter.color })
+    if (depleted) {
+      events.push({ type: 'monsterDepleted', monster, color: monster.color })
     }
   }
 
   return events
 }
 
-// Range check accounting for double-wide blocks
-function _inRange(shooter, block) {
-  const extra = block.isDouble ? BLOCK_SIZE / 2 : 0
-  return Math.abs(shooter.x - block.x) <= ATTACK_RANGE + extra
-}
-
-// Only consider blocks within range with matching color.
-// Prioritise the block closest to the danger zone (lowest x = most urgent).
-function _findTarget(shooter, blocks) {
-  const candidates = blocks.filter(b => b.active && b.color === shooter.color && _inRange(shooter, b))
-  if (candidates.length === 0) return null
-  candidates.sort((a, b) => a.x - b.x)
-  return candidates[0]
+function _getCellCenter(grid, row, col) {
+  return {
+    x: grid.originX + col * grid.cellSize + grid.cellSize / 2,
+    y: grid.originY + row * grid.cellSize + grid.cellSize / 2,
+  }
 }
