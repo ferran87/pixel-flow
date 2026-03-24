@@ -61,7 +61,6 @@ export default class Shooter extends Phaser.GameObjects.Container {
     })
   }
 
-  // Called by AttackSystem each frame
   canAttack(now) {
     return !this._depleted && now - this._lastAttackTime >= ATTACK_RATE
   }
@@ -80,22 +79,38 @@ export default class Shooter extends Phaser.GameObjects.Container {
     })
 
     if (this.ammoRemaining <= 0) {
-      this._deplete()
-      return true   // signal depletion
+      this._sendToBench()
+      return true   // signal ammo exhausted
     }
     return false
   }
 
-  _deplete() {
+  // Animate the shooter sliding down toward the bench, then emit 'benching'
+  _sendToBench() {
     this._depleted = true
+
+    // Brief celebration bounce before sliding off
     this.scene.tweens.add({
       targets: this,
-      alpha: 0,
-      y: this.y - 20,
-      duration: 400,
+      y: this.y - 18,
+      duration: 120,
+      ease: 'Sine.Out',
+      yoyo: true,
       onComplete: () => {
-        this.emit('depleted', this)
-        this.destroy()
+        // Slide down and shrink toward bench
+        this.scene.tweens.add({
+          targets: this,
+          y: this.y + 140,
+          scaleX: 0.5,
+          scaleY: 0.5,
+          alpha: 0,
+          duration: 320,
+          ease: 'Power2.In',
+          onComplete: () => {
+            this.emit('benching', this)
+            this.destroy()
+          },
+        })
       },
     })
   }
