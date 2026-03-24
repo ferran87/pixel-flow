@@ -1,4 +1,4 @@
-import { ATTACK_RANGE, ATTACK_DAMAGE } from '../constants.js'
+import { ATTACK_RANGE, ATTACK_DAMAGE, BLOCK_SIZE } from '../constants.js'
 
 // Pure logic module — no Phaser dependencies, just data manipulation.
 // Called from GameScene.update() every frame.
@@ -10,22 +10,20 @@ export function resolve(shooters, blocks, now) {
   for (const shooter of shooters) {
     if (shooter.isDepleted() || !shooter.active) continue
 
-    // Re-acquire target if current is gone or has drifted out of range
+    // Re-acquire target if current is gone or out of range
     if (
       !shooter.currentTarget ||
       !shooter.currentTarget.active ||
-      Math.abs(shooter.x - shooter.currentTarget.x) > ATTACK_RANGE
+      !_inRange(shooter, shooter.currentTarget)
     ) {
       shooter.currentTarget = _findTarget(shooter, blocks)
     }
 
     if (!shooter.currentTarget) continue
-
-    const dist = Math.abs(shooter.x - shooter.currentTarget.x)
-    if (dist > ATTACK_RANGE) continue
+    if (!_inRange(shooter, shooter.currentTarget)) continue
     if (!shooter.canAttack(now)) continue
 
-    const depleted = shooter.doAttack(now)
+    const benched = shooter.doAttack(now)
     const killed = shooter.currentTarget.takeDamage(ATTACK_DAMAGE)
 
     if (killed) {
@@ -34,22 +32,25 @@ export function resolve(shooters, blocks, now) {
       shooter.currentTarget = null
     }
 
-    if (depleted) {
-      events.push({ type: 'shooterDepleted', shooter })
+    if (benched) {
+      events.push({ type: 'shooterBenched', shooter, color: shooter.color })
     }
   }
 
   return events
 }
 
-// Only consider blocks within the shooter's attack range.
-// Among those, prioritize the one closest to the danger zone (lowest x).
-function _findTarget(shooter, blocks) {
-  const inRange = blocks.filter(
-    b => b.active && b.color === shooter.color && Math.abs(shooter.x - b.x) <= ATTACK_RANGE
-  )
-  if (inRange.length === 0) return null
+// Range check accounting for double-wide blocks
+function _inRange(shooter, block) {
+  const extra = block.isDouble ? BLOCK_SIZE / 2 : 0
+  return Math.abs(shooter.x - block.x) <= ATTACK_RANGE + extra
+}
 
-  inRange.sort((a, b) => a.x - b.x)
-  return inRange[0]
+// Only consider blocks within range with matching color.
+// Prioritise the block closest to the danger zone (lowest x = most urgent).
+function _findTarget(shooter, blocks) {
+  const candidates = blocks.filter(b => b.active && b.color === shooter.color && _inRange(shooter, b))
+  if (candidates.length === 0) return null
+  candidates.sort((a, b) => a.x - b.x)
+  return candidates[0]
 }

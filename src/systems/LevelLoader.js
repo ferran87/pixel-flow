@@ -13,11 +13,15 @@ export default class LevelLoader {
   load() {
     let cumulativeDelay = 0
 
-    this.levelData.blocks.forEach((blockDef, i) => {
+    this.levelData.blocks.forEach((blockDef) => {
       cumulativeDelay += blockDef.delay
 
       const evt = this.scene.time.delayedCall(cumulativeDelay, () => {
-        this.belt.spawnBlock(blockDef.color, blockDef.health || 1)
+        if (blockDef.double) {
+          this.belt.spawnDoubleBlock(blockDef.color)
+        } else {
+          this.belt.spawnBlock(blockDef.color, blockDef.health || 1)
+        }
       })
       this._timerEvents.push(evt)
     })

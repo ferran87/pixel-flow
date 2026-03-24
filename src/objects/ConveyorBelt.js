@@ -1,5 +1,6 @@
 import { GAME_WIDTH, BELT_Y, BELT_HEIGHT, DANGER_X, BLOCK_SIZE } from '../constants.js'
 import ColorBlock from './ColorBlock.js'
+import DoubleBlock from './DoubleBlock.js'
 
 export default class ConveyorBelt {
   constructor(scene, speed) {
@@ -41,6 +42,14 @@ export default class ConveyorBelt {
     return block
   }
 
+  spawnDoubleBlock(color) {
+    // Start fully off-screen (extra BLOCK_SIZE for the 2× width)
+    const x = GAME_WIDTH + BLOCK_SIZE
+    const block = new DoubleBlock(this.scene, x, BELT_Y, color)
+    this.blocks.push(block)
+    return block
+  }
+
   update(delta) {
     const dt = delta / 1000   // convert ms to seconds
     this._tile.tilePositionX -= this.speed * dt * (64 / GAME_WIDTH) * 4
@@ -62,8 +71,12 @@ export default class ConveyorBelt {
 
     toRemove.forEach(b => this._removeBlock(b))
 
-    // Check if any block has crossed the danger line
-    const escaped = this.blocks.find(b => b.active && b.x < DANGER_X)
+    // Check if any block has crossed the danger line (account for double-wide blocks)
+    const escaped = this.blocks.find(b => {
+      if (!b.active) return false
+      const leftEdge = b.x - (b.isDouble ? BLOCK_SIZE : BLOCK_SIZE / 2)
+      return leftEdge < DANGER_X
+    })
     return escaped || null
   }
 
