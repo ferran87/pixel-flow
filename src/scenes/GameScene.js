@@ -1,19 +1,13 @@
 import Phaser from 'phaser'
-import {
-  SCENES, GAME_WIDTH, GAME_HEIGHT, BELT_Y, DANGER_X,
-  DEFAULT_BELT_CAPACITY, DEFAULT_AMMO, BENCH_CAPACITY,
-} from '../constants.js'
+import { SCENES, GAME_WIDTH, GAME_HEIGHT } from '../constants.js'
 import GameState from '../GameState.js'
-import ConveyorBelt from '../objects/ConveyorBelt.js'
-import Shooter from '../objects/Shooter.js'
-import RotatingTray from '../objects/RotatingTray.js'
-import Bench from '../objects/Bench.js'
-import LevelLoader from '../systems/LevelLoader.js'
-import SlingShotSystem from '../systems/SlingShotSystem.js'
+import PixelGrid from '../objects/PixelGrid.js'
+import RailTrack from '../objects/RailTrack.js'
+import Monster from '../objects/Monster.js'
+import MonsterSelector from '../objects/MonsterSelector.js'
 import * as AttackSystem from '../systems/AttackSystem.js'
 import * as ProgressManager from '../systems/ProgressManager.js'
 import * as AudioManager from '../systems/AudioManager.js'
-import * as PictureBuilder from '../utils/PictureBuilder.js'
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -34,144 +28,80 @@ export default class GameScene extends Phaser.Scene {
     }
 
     this._level = level
-    this._beltCapacity = level.beltCapacity ?? DEFAULT_BELT_CAPACITY
-    this._benchActive = (level.benchCapacity ?? 0) > 0
-    this._activeShooters = []
-    this._beltSlots = new Array(this._beltCapacity).fill(null)
-    this._blocksDestroyed = 0
-    this._totalBlocks = level.blocks.length
     this._gameOver = false
-    this._allBlocksSpawned = false
     this._totalDeploys = 0
 
     // Background
-    this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x12121e)
+    this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x2a2a3e)
 
-    // Conveyor belt
-    this._belt = new ConveyorBelt(this, level.beltSpeed)
+    // Pixel grid (the picture)
+    this._grid = new PixelGrid(this, level.grid)
 
-    // Level loader schedules block spawns
-    this._loader = new LevelLoader(this, level, this._belt)
-    this._loader.load()
+    // Rail track around the grid
+    this._rail = new RailTrack(this, this._grid.getBounds(), level.railCapacity)
 
-    // Flag when all blocks have been queued (last cumulative delay + buffer)
-    const totalDelay = level.blocks.reduce((sum, b) => sum + b.delay, 0)
-    this.time.delayedCall(totalDelay + 500, () => { this._allBlocksSpawned = true })
-
-    // Bench (may be inactive for tutorial levels)
-    this._bench = new Bench(this)
-    if (!this._benchActive) {
-      // Hide bench UI for early levels
-      this._bench._overflowFlash?.setAlpha(0)
-    }
-
-    // Bench → tray pipeline
-    this._bench.on('shooterReady', (color) => {
-      if (this._benchActive) this._tray.addToQueue(color)
+    // Monster selector (bottom tray)
+    this._selector = new MonsterSelector(this, level.monsters)
+    this._selector.on('monsterSelected', (color, ammo) => {
+      this._deployMonster(color, ammo)
     })
-
-    // Rotating tray (replaces WaitingSlots)
-    const trayConfig = level.trayConfig ?? {}
-    this._tray = new RotatingTray(this, level.shooterQueue, trayConfig.rotating ?? false)
-    this._tray.on('shooterSelected', (color) => {
-      this._sling.recordDeploy(this.time.now)
-      this._deployShooter(color)
-    })
-
-    // Sling system
-    this._sling = new SlingShotSystem(this)
-
-    // Picture builder (HUD preview)
-    this._picture = this._buildPicturePreview(level)
 
     // HUD
     this._buildHUD()
     this._buildPauseButton()
-
-    // Speed trigger flag
-    if (level.speedTrigger) {
-      this._speedTriggered = false
-    }
   }
 
-  // ─── Belt slot helpers ────────────────────────────────────────────────────
-
-  _slotX(slotIndex) {
-    const rightEdge = GAME_WIDTH - 40
-    const leftEdge  = DANGER_X + 80
-    const step = (rightEdge - leftEdge) / Math.max(this._beltCapacity - 1, 1)
-    return rightEdge - slotIndex * step
-  }
-
-  _deployShooter(color) {
-    const freeSlot = this._beltSlots.findIndex(s => s === null)
-    if (freeSlot === -1) {
-      // Belt full flash
-      this._capacityText?.setStyle({ color: '#ff4444' })
-      this.time.delayedCall(400, () => this._capacityText?.setStyle({ color: '#888899' }))
+  _deployMonster(color, ammo) {
+    if (this._rail.isFull()) {
+      this._flashCapacity()
       return
     }
 
-    const ammo = this._level.ammo ?? DEFAULT_AMMO
-    const shooter = new Shooter(this, this._slotX(freeSlot), BELT_Y, color, ammo)
-    this._beltSlots[freeSlot] = shooter
+    const monster = new Monster(this, color, ammo, this._level.railSpeed)
+    const added = this._rail.addMonster(monster)
+    if (!added) {
+      monster.destroy()
+      return
+    }
+
     this._totalDeploys++
+    AudioManager.init()
+    AudioManager.playDeploy()
 
-    shooter.on('benching', (s) => {
-      // Free belt slot
-      const slotIdx = this._beltSlots.indexOf(s)
-      if (slotIdx !== -1) this._beltSlots[slotIdx] = null
-      const idx = this._activeShooters.indexOf(s)
-      if (idx !== -1) this._activeShooters.splice(idx, 1)
-
-      // Send to bench (bench handles re-queue via event)
-      if (this._benchActive) {
-        this._bench.add(s.color)
-      }
+    monster.on('depleted', (m) => {
+      this._rail.removeMonster(m)
+      this._checkLoss()
     })
-
-    this._activeShooters.push(shooter)
   }
 
-  // ─── Picture preview (HUD) ────────────────────────────────────────────────
-
-  _buildPicturePreview(level) {
-    const px = GAME_WIDTH - 44
-    const py = 85
-    return PictureBuilder.build(this, level.blocks, px, py, 5)
-  }
-
-  _revealPictureTile(index) {
-    this._picture?.reveal(index)
-  }
-
-  // ─── HUD ──────────────────────────────────────────────────────────────────
+  // ---- HUD ----
 
   _buildHUD() {
-    // Level name (top left)
-    this.add.text(16, 16, `${this._level.id}. ${this._level.name}`, {
-      fontSize: '14px', fontFamily: 'monospace', color: '#aaaacc',
-    }).setOrigin(0, 0.5)
+    // Level name
+    this.add.text(16, 16, `Level ${this._level.id}`, {
+      fontSize: '16px', fontFamily: 'monospace', fontStyle: 'bold', color: '#aaaacc',
+    }).setOrigin(0, 0.5).setDepth(20)
+
+    this.add.text(16, 36, this._level.name, {
+      fontSize: '12px', fontFamily: 'monospace', color: '#667788',
+    }).setOrigin(0, 0.5).setDepth(20)
 
     // Block counter
-    this._blockCountText = this.add.text(GAME_WIDTH / 2, 50, this._getCounterText(), {
-      fontSize: '18px', fontFamily: 'monospace', fontStyle: 'bold', color: '#ffffff',
-    }).setOrigin(0.5)
+    this._blockCountText = this.add.text(GAME_WIDTH / 2, 50, '', {
+      fontSize: '16px', fontFamily: 'monospace', fontStyle: 'bold', color: '#ffffff',
+    }).setOrigin(0.5).setDepth(20)
 
     // Progress bar
-    this._progressBg = this.add.rectangle(GAME_WIDTH / 2, 72, GAME_WIDTH - 40, 6, 0x333355)
-    this._progressBar = this.add.rectangle(20, 72, 0, 6, 0x4AE86B).setOrigin(0, 0.5)
+    this._progressBg = this.add.rectangle(GAME_WIDTH / 2, 70, GAME_WIDTH - 40, 6, 0x333355).setDepth(20)
+    this._progressBar = this.add.rectangle(20, 70, 0, 6, 0x4AE86B).setOrigin(0, 0.5).setDepth(20)
 
-    // Belt capacity
-    this._capacityText = this.add.text(GAME_WIDTH - 16, 50, '', {
-      fontSize: '12px', fontFamily: 'monospace', color: '#888899',
-    }).setOrigin(1, 0.5)
+    // Rail capacity is shown by the gate machine on the rail track
   }
 
   _buildPauseButton() {
     const pauseBtn = this.add.text(GAME_WIDTH - 16, 18, '⏸', {
       fontSize: '20px',
-    }).setOrigin(1, 0.5).setInteractive({ cursor: 'pointer' })
+    }).setOrigin(1, 0.5).setInteractive({ cursor: 'pointer' }).setDepth(20)
 
     pauseBtn.on('pointerdown', () => {
       this.scene.pause()
@@ -179,77 +109,70 @@ export default class GameScene extends Phaser.Scene {
     })
   }
 
-  _getCounterText() {
-    const remaining = this._totalBlocks - this._blocksDestroyed
-    return `${remaining} block${remaining !== 1 ? 's' : ''} left`
-  }
-
   _updateHUD() {
-    this._blockCountText?.setText(this._getCounterText())
+    const remaining = this._grid.remainingCount
+    const total = this._grid.totalBlocks
+    this._blockCountText?.setText(`${remaining} / ${total}`)
 
-    const progress = this._totalBlocks > 0 ? this._blocksDestroyed / this._totalBlocks : 0
+    const progress = total > 0 ? (total - remaining) / total : 0
     this._progressBar.width = (GAME_WIDTH - 40) * progress
 
-    const active = this._beltSlots.filter(s => s !== null).length
-    this._capacityText?.setText(`${active}/${this._beltCapacity}`)
+    const onRail = this._rail.monsterCount
+    this._rail.updateGateDisplay(onRail)
+  }
 
-    // Speed trigger
-    if (this._level.speedTrigger && !this._speedTriggered) {
-      const remaining = this._totalBlocks - this._blocksDestroyed
-      if (remaining <= this._level.speedTrigger.blocksRemaining) {
-        this._belt.setSpeed(this._belt.speed * this._level.speedTrigger.multiplier)
-        this._speedTriggered = true
-        AudioManager.playSpeedUp()
-        const flash = this.add.text(GAME_WIDTH / 2, BELT_Y - 60, '⚡ SPEED UP!', {
-          fontSize: '22px', fontFamily: 'monospace', color: '#E8D44A', fontStyle: 'bold',
-        }).setOrigin(0.5)
-        this.tweens.add({
-          targets: flash, alpha: 0, y: flash.y - 40, duration: 1200,
-          onComplete: () => flash.destroy(),
-        })
-      }
+  _flashCapacity() {
+    const label = this._rail._gateLabel
+    if (label) {
+      label.setStyle({ color: '#ff4444' })
+      this.time.delayedCall(400, () => label.setStyle({ color: '#8899aa' }))
     }
   }
 
-  // ─── Main loop ────────────────────────────────────────────────────────────
+  // ---- Main loop ----
 
   update(time, delta) {
     if (this._gameOver) return
 
     const safeDelta = Math.min(delta, 100)
 
-    const escaped = this._belt.update(safeDelta)
-    if (escaped) {
-      this._triggerLoss(); return
-    }
+    // Move monsters along the rail
+    this._rail.update(safeDelta)
 
-    const events = AttackSystem.resolve(this._activeShooters, this._belt.getBlocks(), time)
+    // Resolve attacks
+    const activeMonsters = this._rail.monsters.filter(m => !m.isDepleted())
+    const events = AttackSystem.resolve(activeMonsters, this._grid, time)
 
     events.forEach(evt => {
       if (evt.type === 'blockDestroyed') {
-        const idx = this._blocksDestroyed  // reveal tiles in destruction order
-        this._blocksDestroyed++
         GameState.score++
-        this._belt.removeBlock(evt.block)
-        this._revealPictureTile(idx)
         AudioManager.playBlockDestroy()
-      } else if (evt.type === 'shooterBenched') {
+      } else if (evt.type === 'monsterDepleted') {
         AudioManager.playShooterDepleted()
       }
     })
 
     this._updateHUD()
 
-    if (
-      this._allBlocksSpawned &&
-      this._belt.blockCount === 0 &&
-      this._blocksDestroyed >= this._totalBlocks
-    ) {
+    // Win check
+    if (this._grid.allCleared()) {
       this._triggerWin()
     }
   }
 
-  // ─── Win / Loss ───────────────────────────────────────────────────────────
+  _checkLoss() {
+    if (this._gameOver) return
+
+    // Lose if no monsters on rail AND no monsters left to deploy AND blocks remain
+    const monstersOnRail = this._rail.monsters.filter(m => !m.isDepleted()).length
+    if (monstersOnRail === 0 && this._selector.isExhausted() && !this._grid.allCleared()) {
+      this.time.delayedCall(500, () => {
+        if (!this._gameOver) this._triggerLoss()
+      })
+    }
+  }
+
+  // ---- Win / Loss ----
 
   _triggerWin() {
     if (this._gameOver) return
@@ -258,9 +181,6 @@ export default class GameScene extends Phaser.Scene {
     const stars = this._calcStars()
     GameState.starsEarned = stars
     ProgressManager.saveResult(this._level.id, stars)
-
-    // Animate picture complete (reveal any not yet shown)
-    this._picture?.revealAll(40)
 
     AudioManager.playWin()
     this.cameras.main.flash(300, 255, 255, 100)
@@ -286,13 +206,10 @@ export default class GameScene extends Phaser.Scene {
   }
 
   _calcStars() {
-    const par = this._level.parScore ?? this._totalBlocks
-    const launches = this._totalDeploys
-    const slingStar = this._level.slingStar ?? 0
-    const slingAchieved = this._sling.maxChainAchieved >= slingStar
-
-    if (launches <= par && (slingStar === 0 || slingAchieved)) return 3
-    if (launches <= par + 2) return 2
+    const totalMonsters = this._level.monsters.length
+    const used = this._totalDeploys
+    if (used <= Math.ceil(totalMonsters * 0.6)) return 3
+    if (used <= Math.ceil(totalMonsters * 0.8)) return 2
     return 1
   }
 }

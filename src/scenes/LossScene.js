@@ -17,11 +17,11 @@ export default class LossScene extends Phaser.Scene {
     this.add.rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.75)
     this.add.rectangle(cx, GAME_HEIGHT / 2, 320, 300, 0x2a1a1e).setStrokeStyle(2, 0xE8534A)
 
-    this.add.text(cx, GAME_HEIGHT / 2 - 100, '✖ BLOCK ESCAPED!', {
-      fontSize: '24px', fontFamily: 'monospace', fontStyle: 'bold', color: '#E8534A',
+    this.add.text(cx, GAME_HEIGHT / 2 - 100, 'OUT OF MONSTERS!', {
+      fontSize: '22px', fontFamily: 'monospace', fontStyle: 'bold', color: '#E8534A',
     }).setOrigin(0.5)
 
-    this.add.text(cx, GAME_HEIGHT / 2 - 50, 'A block reached the danger zone.', {
+    this.add.text(cx, GAME_HEIGHT / 2 - 50, 'Blocks remain on the grid.', {
       fontSize: '14px', fontFamily: 'monospace', color: '#aa8888',
     }).setOrigin(0.5)
 

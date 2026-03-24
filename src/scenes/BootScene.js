@@ -2,7 +2,7 @@ import Phaser from 'phaser'
 import { SCENES } from '../constants.js'
 import { registerPlaceholders } from '../utils/PlaceholderArt.js'
 import GameState from '../GameState.js'
-import levelsData from '../../public/data/levels.json'
+import levelsData from '../data/levels.json'
 
 export default class BootScene extends Phaser.Scene {
   constructor() {
